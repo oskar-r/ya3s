@@ -5,7 +5,7 @@ This is a work in progress to provide a simple way of scheduling stand alone fun
 ```go
 import (
    "fmt"
-   "github.com/oskarr/ya3s"
+   "github.com/oskar-r/ya3s"
 )
 
 func testFunc() error {
@@ -28,7 +28,7 @@ func main() {
     ya3s.AddTask(testFunc2, "0,10,20,30,40,50 * * *")
 }
 ```
-At this point in time you must your self secure that the task can exxecute within the timeframe for the task
+At this point in time you must your self secure that the task can execute within the timeframe for the task
 
 ## Todo
 * Dependencies between tasks scheduled to run
