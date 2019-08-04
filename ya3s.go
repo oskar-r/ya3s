@@ -101,8 +101,8 @@ func assessTaskMap() {
 	t := time.Now()
 	for k, v := range tm.tasks {
 		if timeToExecute(v.schedule, t) {
-			go func(k string, t time.Time) {
-				err := v.task()
+			go func(i *taskItem, k string, t time.Time) {
+				err := i.task()
 				if err != nil {
 					tm.tasks[k].lastError = err
 					tm.tasks[k].lastExecutionSuccesful = false
@@ -113,7 +113,7 @@ func assessTaskMap() {
 				tm.tasks[k].numberOfExecutions++
 				tm.tasks[k].lastExecution = t
 
-			}(k, t)
+			}(v, k, t)
 		}
 	}
 }

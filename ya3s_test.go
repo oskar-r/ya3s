@@ -68,7 +68,16 @@ func Test_timeToExecute(t *testing.T) {
 			},
 			true,
 		},
+		{
+			"TEST_6",
+			args{
+				interval: "05 02 * *",
+				t:        time.Date(2019, 8, 4, 02, 04, 00, 0, time.UTC),
+			},
+			false,
+		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := timeToExecute(tt.args.interval, tt.args.t); got != tt.want {
@@ -127,6 +136,43 @@ func Test_validateSchedule(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if err := validateSchedule(tt.args.s); (err != nil) != tt.wantErr {
 				t.Errorf("validateSchedule() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestAddTask(t *testing.T) {
+
+	type args struct {
+		task     Task
+		schedule string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			"TEST_ADD",
+			args{
+				task:     testFunc,
+				schedule: "05,02,*,*",
+			},
+			"",
+			true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := AddTask(tt.args.task, tt.args.schedule)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("AddTask() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if got != tt.want {
+				t.Errorf("AddTask() = %v, want %v", got, tt.want)
 			}
 		})
 	}
