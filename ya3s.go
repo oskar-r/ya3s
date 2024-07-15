@@ -1,7 +1,7 @@
 /*
-Package ya3s - Yet Another Super Simple Scheduler is a task schedule tkat executed tasks on assigned interval based on a cron syntax
+Package ya3s - Yet Another Super Simple Scheduler is a task schedule that executed tasks on assigned interval based on a cron syntax
 
-At the begning of each minute assess if any task is up for execution, if so the task is executed and reports back execution statis to the task que. Tasks need to contain all logic needed to execute them and should only return an error
+At the beginning of each minute assess if any task is up for execution, if so the task is executed and reports back execution statistics to the task que. Tasks need to contain all logic needed to execute them and should only return an error
 
 Copyright (C) 2019 by Oskar Roman <roman.oskar@gmail.com>
 Permission is hereby granted, free of charge, to any person obtaining
@@ -27,29 +27,28 @@ package ya3s
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"strconv"
 	"strings"
 	"time"
-
-	uuid "github.com/satori/go.uuid"
 )
 
 const (
-	errWrongNrOfItems   = "Schedule must have exactly 4 items separated by blank-space or tab found %d"
-	errScheduleInterval = "Execution interval %s is not * or between (%d-%d)"
-	errScheduleFmt      = "Format of schedule %s not correct"
+	errWrongNrOfItems   = "schedule must have exactly 4 items separated by blank-space or tab found %d"
+	errScheduleInterval = "execution interval %s is not * or between (%d-%d)"
+	errScheduleFmt      = "format of schedule %s not correct"
 )
 
-//Task is a function that executes when scheduled
+// Task is a function that executes when scheduled
 type Task func() error
 
 type taskItem struct {
-	task                   Task
-	lastExecution          time.Time
-	lastExecutionSuccesful bool
-	lastError              error
-	numberOfExecutions     int64
-	schedule               string
+	task                    Task
+	lastExecution           time.Time
+	lastExecutionSuccessful bool
+	lastError               error
+	numberOfExecutions      int64
+	schedule                string
 }
 
 type taskMap struct {
@@ -58,9 +57,9 @@ type taskMap struct {
 
 var tm taskMap
 
-//Setup a new execution que and start up the execution clock. Should be called before AddTask
+// Setup a new execution que and start up the execution clock. Should be called before AddTask
 func Setup() {
-	tm.tasks = make(map[string]*taskItem, 0)
+	tm.tasks = make(map[string]*taskItem)
 	ticker := time.NewTicker(time.Minute)
 	quit := make(chan struct{})
 	go func() {
@@ -76,24 +75,24 @@ func Setup() {
 	}()
 }
 
-//CleanUp is a function a function that sets the task queue to nil
+// CleanUp is a function that sets the task queue to nil
 func CleanUp() {
 	fmt.Printf("Cleaning up befor quiting...\n")
 	tm.tasks = nil
 }
 
-//AddTask add a new task to the que for execution once in the defined schedule (cron style * * * *)
+// AddTask add a new task to the que for execution once in the defined schedule (cron style * * * *)
 func AddTask(task Task, schedule string) (string, error) {
 	schedule = strings.Replace(schedule, "\t", " ", -1) //Normalize to spaces
 	if err := validateSchedule(schedule); err != nil {
 		return "", err
 	}
-	uuid := uuid.NewV4()
-	tm.tasks[uuid.String()] = &taskItem{
+	myUuid := uuid.New()
+	tm.tasks[myUuid.String()] = &taskItem{
 		task:     task,
 		schedule: schedule,
 	}
-	return uuid.String(), nil
+	return myUuid.String(), nil
 }
 
 func assessTaskMap() {
@@ -105,10 +104,10 @@ func assessTaskMap() {
 				err := i.task()
 				if err != nil {
 					tm.tasks[k].lastError = err
-					tm.tasks[k].lastExecutionSuccesful = false
+					tm.tasks[k].lastExecutionSuccessful = false
 				} else {
 					tm.tasks[k].lastError = nil
-					tm.tasks[k].lastExecutionSuccesful = true
+					tm.tasks[k].lastExecutionSuccessful = true
 				}
 				tm.tasks[k].numberOfExecutions++
 				tm.tasks[k].lastExecution = t
@@ -118,7 +117,7 @@ func assessTaskMap() {
 	}
 }
 
-//Validation of provided schedule
+// Validation of provided schedule
 func validateSchedule(s string) error {
 	si := strings.Split(s, " ")
 	if len(si) != 4 {
@@ -166,7 +165,7 @@ func validPointInTime(s string, low, high int) error {
 	return nil
 }
 
-//Assess if task should be executed based on the tasks schedule
+// Assess if task should be executed based on the tasks schedule
 func timeToExecute(schedule string, t time.Time) bool {
 	iv := strings.Split(schedule, " ")
 
